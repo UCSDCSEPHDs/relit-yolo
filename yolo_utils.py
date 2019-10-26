@@ -16,7 +16,7 @@ def draw_labels_and_boxes(img, boxes, confidences, classids, idxs, colors, label
             # Get the bounding box coordinates
             x, y = boxes[i][0], boxes[i][1]
             w, h = boxes[i][2], boxes[i][3]
-            
+
             # Get the unique color for this class
             color = [int(c) for c in colors[classids[i]]]
 
@@ -35,14 +35,10 @@ def generate_boxes_confidences_classids(outs, height, width, tconf):
 
     for out in outs:
         for detection in out:
-            #print (detection)
-            #a = input('GO!')
-            
-            # Get the scores, classid, and the confidence of the prediction
             scores = detection[5:]
             classid = np.argmax(scores)
             confidence = scores[classid]
-            
+
             # Consider only the predictions that are above a certain confidence level
             if confidence > tconf:
                 # TODO Check detection
@@ -61,12 +57,12 @@ def generate_boxes_confidences_classids(outs, height, width, tconf):
 
     return boxes, confidences, classids
 
-def infer_image(net, layer_names, height, width, img, colors, labels, FLAGS, 
+def infer_image(net, layer_names, height, width, img, colors, labels, FLAGS,
             boxes=None, confidences=None, classids=None, idxs=None, infer=True):
-    
+
     if infer:
         # Contructing a blob from the input image
-        blob = cv.dnn.blobFromImage(img, 1 / 255.0, (416, 416), 
+        blob = cv.dnn.blobFromImage(img, 1 / 255.0, (416, 416),
                         swapRB=True, crop=False)
 
         # Perform a forward pass of the YOLO object detector
@@ -80,16 +76,16 @@ def infer_image(net, layer_names, height, width, img, colors, labels, FLAGS,
         if FLAGS.show_time:
             print ("[INFO] YOLOv3 took {:6f} seconds".format(end - start))
 
-        
+
         # Generate the boxes, confidences, and classIDs
         boxes, confidences, classids = generate_boxes_confidences_classids(outs, height, width, FLAGS.confidence)
-        
+
         # Apply Non-Maxima Suppression to suppress overlapping bounding boxes
         idxs = cv.dnn.NMSBoxes(boxes, confidences, FLAGS.confidence, FLAGS.threshold)
 
     if boxes is None or confidences is None or idxs is None or classids is None:
         raise '[ERROR] Required variables are set to None before drawing boxes on images.'
-        
+
     # Draw labels and boxes on the image
     img = draw_labels_and_boxes(img, boxes, confidences, classids, idxs, colors, labels)
 
